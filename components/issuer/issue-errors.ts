@@ -12,8 +12,10 @@ const API_MESSAGES: Record<string, string> = {
   unauthorized: "Sign the message in MetaMask, then try again.",
   chain_unavailable: "BSC Testnet is not responding. Try again.",
   tx_not_valid: "The transaction is not confirmed yet. Try again.",
+  mismatch: "That transaction is for a different credential.",
+  not_found: "This credential is not in the records.",
 };
 
-/** Friendly message for an `{ error }` code from /api/credentials/prepare or /confirm. */
+/** Friendly message for an `{ error }` code from the /api/credentials/* routes. */
 export const apiErrorMessage = (code: unknown): string =>
   typeof code === "string" && Object.hasOwn(API_MESSAGES, code) ? API_MESSAGES[code] : FALLBACK_MESSAGE;

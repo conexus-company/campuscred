@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { MAX_PDF_BYTES, checkPdf, newSlug, searchTerm, sha256Bytes } from "./issue";
+import { encodeReason } from "@/lib/contract/codes";
+import { MAX_PDF_BYTES, checkPdf, newSlug, revokeEventError, revokedFields, searchTerm, sha256Bytes } from "./issue";
 
 const pdf = new TextEncoder().encode("%PDF-1.7\n...");
 
@@ -42,4 +43,25 @@ describe("searchTerm", () => {
     expect(searchTerm(null)).toBeNull();
     expect(searchTerm(",,")).toBeNull();
   });
+});
+
+describe("revoke event", () => {
+  const hash = `0x${"ab".repeat(32)}`;
+  const tx = `0x${"CD".repeat(32)}`;
+  const by = "0x4a1B000000000000000000000000000000c9E2";
+  const event = { docHash: hash, reason: encodeReason("FRAUD"), by, timestamp: 1_790_000_000 };
+
+  test("accepts a matching event, any case", () =>
+    expect(revokeEventError(event, hash.toUpperCase().replace("0X", "0x"), by.toLowerCase())).toBeNull());
+  test("rejects another credential's event", () =>
+    expect(revokeEventError(event, `0x${"ef".repeat(32)}`, by)).toBe("mismatch"));
+  test("rejects an event revoked by another wallet", () =>
+    expect(revokeEventError(event, hash, "0x0000000000000000000000000000000000000001")).toBe("forbidden"));
+  test("builds the columns from the event", () =>
+    expect(revokedFields(event, tx)).toEqual({
+      status: "revoked",
+      revoke_tx: tx.toLowerCase(),
+      revoke_reason: "FRAUD",
+      revoked_at: new Date(1_790_000_000_000).toISOString(),
+    }));
 });
