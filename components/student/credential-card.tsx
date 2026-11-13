@@ -9,6 +9,7 @@ import { credTypeLabel, formatDate, revokeReasonText } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DownloadButton } from "./download-button";
 import { ShareSheet } from "./share-sheet";
+import { VisibilitySwitch } from "./visibility-switch";
 
 type CredentialCardProps = {
   credential: MyCredential;
@@ -20,6 +21,7 @@ type CredentialCardProps = {
 /** Expandable credential card: title, type, status pill and chevron; details and actions inside. */
 export function CredentialCard({ credential: c, siteUrl, defaultOpen = false }: CredentialCardProps) {
   const [open, setOpen] = useState(defaultOpen);
+  const [isPublic, setIsPublic] = useState(c.isPublic);
   const panelId = useId();
   const revoked = c.status === "revoked";
 
@@ -37,6 +39,11 @@ export function CredentialCard({ credential: c, siteUrl, defaultOpen = false }: 
             <span className="text-[17px] leading-snug font-semibold">{c.title}</span>
             <span className="text-sm font-normal text-cc-muted">{credTypeLabel(c.credType)}</span>
           </span>
+          {!isPublic && (
+            <span className="rounded-full border border-cc-line px-2.5 py-1 text-[13px] font-semibold text-cc-muted max-[420px]:hidden">
+              Private
+            </span>
+          )}
           <StatusPill status={c.status} />
           <ChevronDown
             aria-hidden="true"
@@ -64,9 +71,13 @@ export function CredentialCard({ credential: c, siteUrl, defaultOpen = false }: 
           </p>
         )}
 
+        <div className="mt-5">
+          <VisibilitySwitch docHash={c.docHash} isPublic={isPublic} onChange={setIsPublic} />
+        </div>
+
         <div className="mt-5 flex flex-wrap items-start gap-3">
           <DownloadButton docHash={c.docHash} />
-          <ShareSheet link={`${siteUrl}/v/${c.slug}`} title={c.title} isPublic={c.isPublic} />
+          <ShareSheet link={`${siteUrl}/v/${c.slug}`} title={c.title} isPublic={isPublic} />
         </div>
       </div>
     </li>
