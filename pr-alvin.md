@@ -357,7 +357,7 @@ export const txUrl: (hash: Hex) => string;
 | `POST /api/credentials/[hash]/download-url` | Gil | student session | `{ url, expiresAt }`. Signed URL that expires after **60 seconds**. Only the owner can request it. *(Added to the spec: needed for the 60-second download.)* |
 | `PATCH /api/credentials/[hash]/visibility` | Gil (P1) | student session | `{ isPublic }` |
 | `POST /api/credentials/prepare` | Alvin | wallet signature | multipart: `file`, `studentNo`, `credType`, `title`, `docHash`. Server re-hashes the file and rejects a mismatch. Returns `{ docHash, studentRef, credType32, pdfPath }`. |
-| `POST /api/credentials/confirm` | Alvin | wallet signature | `{ docHash, txHash }`. Server reads the receipt and the `CredentialIssued` event before saving. Returns `{ slug, txUrl }`. |
+| `POST /api/credentials/confirm` | Alvin | wallet signature | `{ docHash, txHash, title }`. Server reads the receipt and the `CredentialIssued` event before saving; the signer must be the event's issuer. Returns `{ slug, txUrl }`. *(`title` added to the spec: it is not on chain and the row needs it.)* |
 | `POST /api/credentials/[hash]/revoke-confirm` | Alvin | wallet signature | `{ txHash, reason }`. Server verifies the `CredentialRevoked` event. |
 | `GET /api/issuer/students?q=` | Alvin | wallet signature | Student search for the issue form. Issuer-only; this is the only place names are returned to a non-owner. *(Added to the spec.)* |
 | `GET /api/issuer/credentials` and `GET /api/issuer/credentials/[hash]` | Alvin | wallet signature | The issuing wallet's credentials (admin sees all) with student name and number, and one record. Issuer or admin only. *(Added to the spec: the dashboard and detail page need them.)* |
