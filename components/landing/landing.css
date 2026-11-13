@@ -1,0 +1,201 @@
+/* Landing motion (gil/05), prototype Main.dc.html. Every class is cc-land-* to stay out of the way. */
+
+@keyframes cc-land-fade {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cc-land-float {
+  50% {
+    transform: translateY(-12px);
+  }
+}
+@keyframes cc-land-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes cc-land-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.cc-land-fade {
+  opacity: 0;
+  animation: cc-land-fade 0.9s ease forwards;
+}
+
+/* ---- Pinned notes ---- */
+.cc-land-note {
+  position: absolute;
+  left: var(--l);
+  top: var(--t);
+  touch-action: none;
+  user-select: none;
+  opacity: 0;
+  animation: cc-land-fade 0.8s ease forwards;
+}
+.cc-land-note-in {
+  position: relative;
+  background: #fff;
+  color: var(--cc-ink);
+  border-radius: 18px;
+  padding: 20px 20px 16px;
+  box-shadow: 0 26px 40px -22px rgba(40, 30, 0, 0.75);
+  animation: cc-land-float 6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+.cc-land-pin {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  margin-left: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #8a8a8a, #2a2a2a 45%, #000);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+.cc-land-caret {
+  display: inline-block;
+  width: 2px;
+  height: 15px;
+  background: var(--cc-ink);
+  vertical-align: -3px;
+  margin-left: 1px;
+  animation: cc-land-blink 1s steps(1) infinite;
+}
+
+/* At 1100px and below the notes leave the poster and sit in a row under the buttons. */
+@media (max-width: 1100px) {
+  .cc-land-notes {
+    position: static !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    padding: 56px 24px 0;
+  }
+  .cc-land-note {
+    position: relative;
+    left: auto;
+    top: auto;
+  }
+  .cc-land-hint {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .cc-land-note-d {
+    display: none;
+  }
+}
+@media (max-width: 840px) {
+  .cc-land-note-b {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .cc-land-notes {
+    display: none;
+  }
+}
+
+/* ---- Marquee ---- */
+.cc-land-track {
+  animation: cc-land-marquee 38s linear infinite;
+}
+.cc-land-marquee:hover .cc-land-track {
+  animation-play-state: paused;
+}
+
+/* ---- Cube ---- */
+.cc-land-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  backface-visibility: hidden;
+  background: linear-gradient(150deg, #2b2410, #0d0b05);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: var(--cc-on-dark);
+}
+.cc-land-face small {
+  font-size: 14px;
+  color: #e8ddb0;
+}
+.cc-land-face b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 46px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+.cc-land-face p {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: #f0e8c8;
+}
+.cc-land-face.is-gold {
+  background: linear-gradient(150deg, #ffd54a, #e0a800);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: var(--cc-ink);
+}
+.cc-land-face.is-gold small,
+.cc-land-face.is-gold p {
+  color: #2b2200;
+}
+.cc-land-f0 {
+  transform: translateZ(190px);
+}
+.cc-land-f1 {
+  transform: rotateY(90deg) translateZ(190px);
+}
+.cc-land-f2 {
+  transform: rotateY(180deg) translateZ(190px);
+}
+.cc-land-f3 {
+  transform: rotateY(-90deg) translateZ(190px);
+}
+.cc-land-f4 {
+  transform: rotateX(90deg) translateZ(190px);
+}
+.cc-land-f5 {
+  transform: rotateX(-90deg) translateZ(190px);
+}
+@media (max-width: 560px) {
+  .cc-land-stage {
+    height: 400px !important;
+  }
+  .cc-land-cube-scale {
+    transform: scale(0.72);
+  }
+}
+
+/* ---- Closing glow ---- */
+.cc-land-spot {
+  position: relative;
+}
+.cc-land-spot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(520px circle at var(--mx, 50%) var(--my, 40%), rgba(255, 255, 255, 0.3), transparent 62%);
+}
+
+/* The global reduced-motion rule keeps animation delays, so switch everything off outright. */
+@media (prefers-reduced-motion: reduce) {
+  .cc-land-fade,
+  .cc-land-note,
+  .cc-land-note-in,
+  .cc-land-caret,
+  .cc-land-track {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
