@@ -2,14 +2,47 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Light theme only. `dark:` utilities in shadcn components stay inert because
+   no element ever carries the `.dark` class. Do not remove this line: without
+   it Tailwind v4 falls back to prefers-color-scheme. */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* CampusCred tokens (pr-gil.md 5.1) */
+  --color-cc-yellow: var(--cc-yellow);
+  --color-cc-ink: var(--cc-ink);
+  --color-cc-side: var(--cc-side);
+  --color-cc-page: var(--cc-page);
+  --color-cc-paper: var(--cc-paper);
+  --color-cc-butter: var(--cc-butter);
+  --color-cc-line: var(--cc-line);
+  --color-cc-track: var(--cc-track);
+  --color-cc-muted: var(--cc-muted);
+  --color-cc-muted-2: var(--cc-muted-2);
+  --color-cc-on-dark: var(--cc-on-dark);
+  --color-cc-on-dark-muted: var(--cc-on-dark-muted);
+  --color-cc-valid: var(--cc-valid);
+  --color-cc-revoked: var(--cc-revoked);
+  --color-cc-tampered: var(--cc-tampered);
+  --color-cc-notfound: var(--cc-notfound);
+  --color-cc-valid-dark: var(--cc-valid-dark);
+  --color-cc-revoked-dark: var(--cc-revoked-dark);
+  --color-cc-tampered-dark: var(--cc-tampered-dark);
+  --color-cc-notfound-dark: var(--cc-notfound-dark);
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-poppins), system-ui, sans-serif;
+  --font-serif: var(--font-lora), Georgia, serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-heading: var(--font-display);
+
+  --radius-card: 24px;
+  --radius-banner: 32px;
+  --radius-input: 14px;
+
+  /* shadcn mapping */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,82 +82,94 @@
 }
 
 :root {
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-}
+  --cc-yellow: #f0b90b;
+  --cc-ink: #0b0b0c;
+  --cc-side: #14110a;
+  --cc-page: #fbf8ec;
+  --cc-paper: #fbfaf4;
+  --cc-butter: #fbf4d2;
+  --cc-line: #eae3c8;
+  --cc-track: #f1ebd3;
+  --cc-muted: #5f5640;
+  --cc-muted-2: #6e6549;
+  --cc-on-dark: #fff6d9;
+  --cc-on-dark-muted: #d9cfa6;
+  --cc-valid: #16a34a;
+  --cc-revoked: #d97706;
+  --cc-tampered: #dc2626;
+  --cc-notfound: #6b7280;
+  --cc-valid-dark: #4ade80;
+  --cc-revoked-dark: #fb923c;
+  --cc-tampered-dark: #f87171;
+  --cc-notfound-dark: #d4d4d8;
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: var(--cc-page);
+  --foreground: var(--cc-ink);
+  --card: #ffffff;
+  --card-foreground: var(--cc-ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--cc-ink);
+  --primary: var(--cc-ink);
+  --primary-foreground: var(--cc-yellow);
+  --secondary: var(--cc-butter);
+  --secondary-foreground: var(--cc-ink);
+  --muted: var(--cc-butter);
+  --muted-foreground: var(--cc-muted);
+  --accent: var(--cc-yellow);
+  --accent-foreground: var(--cc-ink);
+  --destructive: var(--cc-tampered);
+  --border: var(--cc-line);
+  --input: var(--cc-line);
+  --ring: var(--cc-ink);
+  --chart-1: var(--cc-yellow);
+  --chart-2: var(--cc-ink);
+  --chart-3: var(--cc-valid);
+  --chart-4: var(--cc-revoked);
+  --chart-5: var(--cc-notfound);
+  --radius: 0.875rem;
+  --sidebar: var(--cc-side);
+  --sidebar-foreground: var(--cc-on-dark);
+  --sidebar-primary: var(--cc-yellow);
+  --sidebar-primary-foreground: var(--cc-ink);
+  --sidebar-accent: rgb(255 255 255 / 0.08);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 0.14);
+  --sidebar-ring: var(--cc-yellow);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
   }
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
+  :focus-visible {
+    outline: 3px solid var(--cc-ink);
+    outline-offset: 3px;
+  }
+  /* Dark surfaces (sidebar, banners) flip the focus ring to yellow. */
+  .cc-on-dark :focus-visible {
+    outline-color: var(--cc-yellow);
+  }
+}
+
+@utility font-disp {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
