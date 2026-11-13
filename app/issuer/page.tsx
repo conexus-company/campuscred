@@ -15,10 +15,15 @@ export default function IssuerPage() {
         title="Issued credentials"
         subtitle="Every credential you issue is recorded on the chain."
         action={
-          <Link href="/issuer/new" className={buttonVariants({ variant: "yellow", size: "pill" })}>
-            <Plus />
-            Issue new
-          </Link>
+          <div className="flex flex-wrap gap-2.5">
+            <Link href="/issuer/new" className={buttonVariants({ variant: "yellow", size: "pill" })}>
+              <Plus />
+              Issue new
+            </Link>
+            <Link href="/issuer/batch" className={buttonVariants({ variant: "yellow", size: "pill" })}>
+              Batch issue
+            </Link>
+          </div>
         }
       />
       <CredentialsTable />

@@ -3,7 +3,7 @@ import { decodeCredType } from "@/lib/contract/codes";
 import { txUrl, type Hex } from "@/lib/contract/config";
 import { isDocHash } from "@/lib/hash";
 import { getIssuedEvent } from "@/lib/server/chain";
-import { newSlug } from "@/lib/server/issue";
+import { findCredential, insertCredential } from "@/lib/server/insert-credential";
 import { WalletAuthError, verifyWalletAuth } from "@/lib/server/wallet-auth";
 import { runSync } from "@/lib/server/sync";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -40,10 +40,7 @@ export async function POST(req: NextRequest) {
   if (!isDocHash(docHash) || !isDocHash(txHash) || !title || title.length > 200) return fail("bad_request", 400);
 
   const db = createAdminClient();
-  const existing = () =>
-    db.from("credentials").select("share_slug, issue_tx").eq("doc_hash", docHash).maybeSingle();
-
-  const found = await existing();
+  const found = await findCredential(db, docHash);
   if (found.error) return fail("unavailable", 503);
   if (found.data) return ok(found.data);
 
@@ -70,21 +67,11 @@ export async function POST(req: NextRequest) {
     cred_type: credType,
     title,
     pdf_path: `${docHash}.pdf`,
-    status: "active",
+    status: "active" as const,
     issue_tx: txHash,
     issued_at: new Date(event.timestamp * 1000).toISOString(),
   };
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const share_slug = newSlug();
-    const { error } = await db.from("credentials").insert({ ...row, share_slug });
-    if (!error) return ok({ share_slug, issue_tx: txHash });
-    if (error.code !== "23505") return fail("unavailable", 503);
-    if (!/share_slug/.test(`${error.message} ${error.details}`)) {
-      // Another confirm for the same docHash won the race: return its row.
-      const raced = await existing();
-      return raced.data ? ok(raced.data) : fail("unavailable", 503);
-    }
-  }
-  return fail("unavailable", 503);
+  const saved = await insertCredential(db, row);
+  return saved ? ok(saved) : fail("unavailable", 503);
 }
