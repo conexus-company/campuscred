@@ -13,7 +13,7 @@ export async function issuerScope(headers: Headers, check: typeof hasRole = hasR
 }
 
 export const CREDENTIAL_COLUMNS =
-  "doc_hash, cred_type, title, issuer_wallet, issued_at, issue_tx, share_slug, is_public, status, revoke_tx, revoke_reason, revoked_at, students(full_name, student_no), issuers(display_name)";
+  "doc_hash, cred_type, title, issuer_wallet, issued_at, issue_tx, share_slug, is_public, status, revoke_tx, revoke_reason, revoked_at, replaces, students(full_name, student_no), issuers(display_name)";
 
 type One<T> = T | T[] | null;
 export type IssuerCredentialRow = {
@@ -29,6 +29,7 @@ export type IssuerCredentialRow = {
   revoke_tx: string | null;
   revoke_reason: string | null;
   revoked_at: string | null;
+  replaces: string | null;
   students: One<{ full_name: string; student_no: string }>;
   issuers: One<{ display_name: string }>;
 };
@@ -58,6 +59,7 @@ export function toIssuerCredential(row: IssuerCredentialRow) {
     revokeTx: (row.revoke_tx?.trim() ?? null) as Hex | null,
     revokeReason: row.revoke_reason as RevokeReason | null,
     revokedAt: row.revoked_at ? unix(row.revoked_at) : null,
+    replaces: (row.replaces?.trim() ?? null) as Hex | null,
   };
 }
 

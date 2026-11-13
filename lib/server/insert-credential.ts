@@ -13,6 +13,7 @@ export type CredentialRow = {
   status: "active";
   issue_tx: string;
   issued_at: string;
+  replaces?: string; // re-issue: the credential this one replaces
 };
 export type Saved = { share_slug: string; issue_tx: string };
 

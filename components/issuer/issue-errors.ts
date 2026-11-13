@@ -14,6 +14,9 @@ const API_MESSAGES: Record<string, string> = {
   tx_not_valid: "The transaction is not confirmed yet. Try again.",
   mismatch: "That transaction is for a different credential.",
   not_found: "This credential is not in the records.",
+  replace_not_found: "The credential being replaced is not in the records.",
+  replace_wrong_student: "A re-issue must go to the same student as the original.",
+  already_replaced: "That credential was already re-issued.",
 };
 
 /** Friendly message for an `{ error }` code from the /api/credentials/* routes. */

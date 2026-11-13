@@ -144,7 +144,9 @@ export function StudentsView() {
             <ul className="m-0 flex list-none flex-col p-0">
               {current.credentials.map((c) => {
                 const ownWallet = !!address && c.issuerWallet.toLowerCase() === address.toLowerCase();
-                const canRevoke = c.status === "active" && !!provider && (isAdmin || (isIssuer && ownWallet));
+                const mayAct = !!provider && (isAdmin || (isIssuer && ownWallet));
+                const canRevoke = c.status === "active" && mayAct;
+                const replaced = current.credentials.some((n) => n.replaces?.toLowerCase() === c.docHash.toLowerCase());
                 return (
                   <li
                     key={c.docHash}
@@ -154,6 +156,8 @@ export function StudentsView() {
                       <span className="font-disp text-[17px] tracking-[-0.02em]">{credTypeLabel(c.credType)}</span>
                       <span className="text-[13px] text-cc-muted">
                         {c.title} · Issued {formatDate(c.issuedAt)}
+                        {c.replaces && " · Re-issue"}
+                        {replaced && " · Replaced"}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2.5">
@@ -164,6 +168,14 @@ export function StudentsView() {
                       >
                         Details
                       </Link>
+                      {mayAct && !replaced && (
+                        <Link
+                          href={`/issuer/new?replaces=${c.docHash}`}
+                          className={buttonVariants({ variant: "ghost", size: "pill-sm" })}
+                        >
+                          Re-issue
+                        </Link>
+                      )}
                       {canRevoke && provider && (
                         <RevokeDialog
                           docHash={c.docHash}
