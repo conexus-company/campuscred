@@ -1,5 +1,6 @@
 // Pure helpers for the issue API routes (alvin/05-issue-api). Server only.
 import { createHash, randomBytes } from "node:crypto";
+import { decodeReason } from "@/lib/contract/codes";
 import type { Hex } from "@/lib/contract/config";
 
 export const MAX_PDF_BYTES = 10 * 1024 * 1024;
@@ -26,3 +27,20 @@ export function searchTerm(q: string | null): string | null {
   const term = (q ?? "").replace(/[^\p{L}\p{N} .'-]/gu, "").trim().slice(0, 64);
   return term.length >= 2 ? term : null;
 }
+
+type RevokeEvent = { docHash: string; reason: string; by: string; timestamp: number };
+
+/** Error code when a mined CredentialRevoked event is not for this credential or not by the signed caller. */
+export function revokeEventError(event: RevokeEvent, docHash: string, signer: string): "mismatch" | "forbidden" | null {
+  if (event.docHash.toLowerCase() !== docHash.toLowerCase()) return "mismatch";
+  if (event.by.toLowerCase() !== signer.toLowerCase()) return "forbidden";
+  return null;
+}
+
+/** `credentials` columns to update from a checked CredentialRevoked event. */
+export const revokedFields = (event: RevokeEvent, txHash: string) => ({
+  status: "revoked" as const,
+  revoke_tx: txHash.toLowerCase(),
+  revoke_reason: decodeReason(event.reason),
+  revoked_at: new Date(event.timestamp * 1000).toISOString(),
+});

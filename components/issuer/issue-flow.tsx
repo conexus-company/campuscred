@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { HashText } from "@/components/brand/hash-text";
 import { Button } from "@/components/ui/button";
 import { DropZone } from "@/components/ui/drop-zone";
@@ -9,6 +9,7 @@ import { CRED_TYPES, type CredType } from "@/lib/contract/codes";
 import type { Hex } from "@/lib/contract/config";
 import { CRED_TYPE_LABELS } from "@/lib/format";
 import { sha256Hex } from "@/lib/hash";
+import { useAuthHeaders } from "@/lib/wallet/use-auth-headers";
 import { useWallet } from "@/lib/wallet/use-wallet";
 import { IssueApiError, apiErrorMessage } from "./issue-errors";
 import { ErrorCard, ProgressCard, StatusIsland, SuccessCard, type Phase } from "./issue-progress";
@@ -16,7 +17,6 @@ import { FIELD, StudentSearch, type Student } from "./student-search";
 
 // shortcut: fixed academic term for the default title; derive it from the date when terms roll over.
 const defaultTitle = (t: CredType) => `${CRED_TYPE_LABELS[t]}, 1st Sem AY 2026–2027`;
-const AUTH_TTL_MS = 4 * 60_000; // server accepts a signed header set for 5 minutes
 
 async function postJson<T>(url: string, init: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -37,16 +37,8 @@ export function IssueFlow() {
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<Hex | null>(null);
   const [result, setResult] = useState<{ slug: string; txUrl: string } | null>(null);
-  const auth = useRef<{ at: number; headers: Record<string, string> } | null>(null);
   const pick = useRef(0); // drops a hash that finished after a newer file was chosen
-
-  // shortcut: reuses one signature for every call within 4 minutes; the server does not track nonces either.
-  const authHeaders = useCallback(async () => {
-    if (!auth.current || Date.now() - auth.current.at > AUTH_TTL_MS) {
-      auth.current = { at: Date.now(), headers: await signAuthHeaders() };
-    }
-    return auth.current.headers;
-  }, [signAuthHeaders]);
+  const authHeaders = useAuthHeaders(signAuthHeaders);
 
   const busy = phase !== "idle" && phase !== "done" && !error;
   const missing = [!student && "a student", !title.trim() && "a title", !file && "the PDF"].filter(Boolean);
