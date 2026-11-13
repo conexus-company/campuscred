@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
+import { APP_SHELL_FOOTER_LINK } from "./app-shell-styles";
 
 export type AppShellNavItem = {
   href: string;
@@ -19,7 +20,10 @@ type AppShellProps = {
   nav: AppShellNavItem[];
   /** Shown at the bottom of the sidebar. Hidden in the compact top bar below 980px. */
   identity: { title: string; subtitle?: string };
-  footerLink: { label: string; href: string };
+  /** Link under the identity, e.g. "Disconnect". */
+  footerLink?: { label: string; href: string };
+  /** Replaces footerLink, e.g. a sign-out form. Style it with APP_SHELL_FOOTER_LINK. */
+  footer?: ReactNode;
   /** Optional strip at the top right of the main column ("Signed in as issuer", wallet chip). */
   topBar?: ReactNode;
   children: ReactNode;
@@ -29,7 +33,7 @@ type AppShellProps = {
  * Dark sidebar plus main column (prototype Issuer.dc.html and Student.dc.html).
  * Below 980px the sidebar becomes a compact top bar: nav in a row, identity text hidden.
  */
-export function AppShell({ nav, identity, footerLink, topBar, children }: AppShellProps) {
+export function AppShell({ nav, identity, footerLink, footer, topBar, children }: AppShellProps) {
   const pathname = usePathname();
 
   return (
@@ -73,12 +77,12 @@ export function AppShell({ nav, identity, footerLink, topBar, children }: AppShe
         >
           <div className="text-[15px] font-semibold text-white max-[980px]:hidden">{identity.title}</div>
           {identity.subtitle && <div className="text-sm text-[#CFC59A] max-[980px]:hidden">{identity.subtitle}</div>}
-          <Link
-            href={footerLink.href}
-            className="mt-2.5 flex min-h-8 items-center text-sm font-semibold text-white underline decoration-cc-yellow decoration-2 underline-offset-[6px] max-[980px]:mt-0"
-          >
-            {footerLink.label}
-          </Link>
+          {footer ??
+            (footerLink && (
+              <Link href={footerLink.href} className={APP_SHELL_FOOTER_LINK}>
+                {footerLink.label}
+              </Link>
+            ))}
         </div>
       </aside>
 
