@@ -6,7 +6,7 @@ import { cn } from "cn"
 const pillMotion =
   "transition-[transform,background-color] duration-300 ease-[cubic-bezier(.2,.9,.2,1)] hover:-translate-y-[3px] active:not-aria-[haspopup]:translate-y-0 focus-visible:border-cc-ink focus-visible:ring-0 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-3 focus-visible:outline-cc-ink"
 
-const buttonVariants = cva(
+const buttonClasses = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
@@ -50,16 +50,25 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * Merged class string for a button look. Use this on a <Link> or <a> styled as a button:
+ * the raw cva output keeps both base and variant classes (rounded-lg and rounded-full,
+ * border-transparent and border-cc-ink), and the base ones can win in the CSS order.
+ */
+function buttonVariants(props?: Parameters<typeof buttonClasses>[0]) {
+  return cn(buttonClasses(props))
+}
+
 function Button({
   className,
   variant = "default",
   size = "default",
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props & VariantProps<typeof buttonClasses>) {
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonClasses({ variant, size, className }))}
       {...props}
     />
   )
