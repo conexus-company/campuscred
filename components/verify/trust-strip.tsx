@@ -1,7 +1,7 @@
 import { CONTRACT_ADDRESS, EXPLORER_URL } from "@/lib/contract/config";
 
 const linkClass =
-  "flex min-h-8 items-center font-mono text-[13px] text-cc-ink underline decoration-cc-yellow decoration-2 underline-offset-[5px]";
+  "flex min-h-8 max-w-full min-w-0 items-center font-mono text-[13px] break-all text-cc-ink underline decoration-cc-yellow decoration-2 underline-offset-[5px]";
 
 /** True while lib/contract/config.ts still holds the zero placeholder (before CP2). */
 export const contractDeployed = !/^0x0{40}$/i.test(CONTRACT_ADDRESS);
