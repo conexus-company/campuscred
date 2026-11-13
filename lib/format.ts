@@ -27,6 +27,12 @@ export function shortHash(hash: string, tail = 4): string {
   return `${hash.slice(0, 10)}…${hash.slice(-tail)}`;
 }
 
+/** "0x4a1b…c9e2": a wallet address shortened to 0x + 4 and the last 4. */
+export function shortAddress(address: string): string {
+  if (address.length <= 11) return address;
+  return `${address.slice(0, 6)}…${address.slice(-4)}`;
+}
+
 export const CRED_TYPE_LABELS: Record<CredType, string> = {
   CERT_ENROLLMENT: "Certificate of Enrollment",
   CERT_GRADES: "Certificate of Grades",
