@@ -163,6 +163,40 @@
   letter-spacing: -0.045em;
 }
 
+/* Shared motion from the prototype. All of it is cancelled by the reduced-motion rule below. */
+@keyframes cc-fade {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes cc-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+@keyframes cc-float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@utility cc-in {
+  animation: cc-fade 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+@utility cc-fill {
+  animation: cc-fill 0.95s ease-out forwards;
+}
+@utility cc-float {
+  animation: cc-float 6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { credTypeLabel, formatDate, revokeReasonText, shortHash } from "./format";
+import { credTypeLabel, formatDate, revokeReasonText, shortAddress, shortHash } from "./format";
 
 describe("formatDate", () => {
   test("unix seconds give 5 Nov 2026", () => {
@@ -31,6 +31,12 @@ describe("shortHash", () => {
   });
   test("short input is returned unchanged", () => {
     expect(shortHash("0x1234")).toBe("0x1234");
+  });
+});
+
+describe("shortAddress", () => {
+  test("keeps 0x + 4 and the last 4", () => {
+    expect(shortAddress("0x4a1b7e2c9d03f58a6b21c4e07d9f3a85b6e2c9e2")).toBe("0x4a1b…c9e2");
   });
 });
 
