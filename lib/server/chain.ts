@@ -5,11 +5,9 @@ import { CHAIN_ID, CONTRACT_ADDRESS, RPC_URLS, type Hex } from "@/lib/contract/c
 const iface = new Interface(CAMPUSCRED_ABI);
 
 // staticNetwork: never probe eth_chainId; priority order = RPC_URLS order.
+const rpcs = RPC_URLS.map((url) => new JsonRpcProvider(url, CHAIN_ID, { staticNetwork: true }));
 const provider = new FallbackProvider(
-  RPC_URLS.map((url, i) => ({
-    provider: new JsonRpcProvider(url, CHAIN_ID, { staticNetwork: true }),
-    priority: i + 1,
-  })),
+  rpcs.map((p, i) => ({ provider: p, priority: i + 1 })),
   CHAIN_ID,
   { quorum: 1 },
 );
@@ -35,11 +33,22 @@ function findEvent(logs: readonly Log[], name: string, contractAddress: string) 
   return null;
 }
 
-/** Pure: first CredentialIssued log emitted by `contractAddress`, or null. */
-export function decodeIssuedLog(logs: readonly Log[], contractAddress: string = CONTRACT_ADDRESS): IssuedFields | null {
-  const a = findEvent(logs, "CredentialIssued", contractAddress);
-  return a && { docHash: a.docHash, studentRef: a.studentRef, credType: a.credType, issuer: a.issuer };
+/** Pure: every CredentialIssued log emitted by `contractAddress` (issueBatch emits one per credential). */
+export function decodeIssuedLogs(logs: readonly Log[], contractAddress: string = CONTRACT_ADDRESS): IssuedFields[] {
+  const out: IssuedFields[] = [];
+  for (const log of logs) {
+    if (log.address.toLowerCase() !== contractAddress.toLowerCase()) continue;
+    const parsed = iface.parseLog({ topics: [...log.topics], data: log.data });
+    if (parsed?.name !== "CredentialIssued") continue;
+    const a = parsed.args;
+    out.push({ docHash: a.docHash, studentRef: a.studentRef, credType: a.credType, issuer: a.issuer });
+  }
+  return out;
 }
+
+/** Pure: first CredentialIssued log emitted by `contractAddress`, or null. */
+export const decodeIssuedLog = (logs: readonly Log[], contractAddress: string = CONTRACT_ADDRESS): IssuedFields | null =>
+  decodeIssuedLogs(logs, contractAddress)[0] ?? null;
 
 /** Pure: first CredentialRevoked log emitted by `contractAddress`, or null. */
 export function decodeRevokedLog(logs: readonly Log[], contractAddress: string = CONTRACT_ADDRESS): RevokedFields | null {
@@ -60,4 +69,63 @@ async function minedEvent<T>(txHash: string, decode: (logs: readonly Log[]) => T
 }
 
 export const getIssuedEvent = (txHash: string) => minedEvent(txHash, (logs) => decodeIssuedLog(logs));
+/** All CredentialIssued events of an issueBatch tx; null when the tx is not a mined CampusCred call with any. */
+export const getIssuedEvents = (txHash: string) =>
+  minedEvent(txHash, (logs) => {
+    const events = decodeIssuedLogs(logs);
+    return events.length ? { events } : null;
+  });
 export const getRevokedEvent = (txHash: string) => minedEvent(txHash, (logs) => decodeRevokedLog(logs));
+
+export const getLatestBlock = (): Promise<number> => provider.getBlockNumber();
+
+export async function getBlockTimestamp(blockNumber: number): Promise<number> {
+  const block = await provider.getBlock(blockNumber);
+  if (!block) throw new Error(`block ${blockNumber} not found`);
+  return block.timestamp;
+}
+
+/**
+ * CampusCred logs in [fromBlock, toBlock], trying each RPC in order. Not through the
+ * FallbackProvider: some public RPCs reject eth_getLogs outright ("limit exceeded").
+ */
+export async function getContractLogs(fromBlock: number, toBlock: number) {
+  let lastError: unknown;
+  for (const rpc of rpcs) {
+    try {
+      return await rpc.getLogs({ address: CONTRACT_ADDRESS, fromBlock, toBlock });
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw lastError;
+}
+
+export type SyncEvent =
+  | { kind: "issued"; docHash: Hex }
+  | { kind: "revoked"; docHash: Hex; reason: Hex; by: Hex }
+  | { kind: "issuerAdded"; wallet: Hex; name: string }
+  | { kind: "issuerRemoved"; wallet: Hex };
+
+/** Pure: the event /api/sync mirrors, or null for any other CampusCred log (Paused, role events). */
+export function decodeSyncLog(log: Log): SyncEvent | null {
+  let parsed;
+  try {
+    parsed = iface.parseLog({ topics: [...log.topics], data: log.data });
+  } catch {
+    return null;
+  }
+  const a = parsed?.args;
+  switch (parsed?.name) {
+    case "CredentialIssued":
+      return { kind: "issued", docHash: a!.docHash };
+    case "CredentialRevoked":
+      return { kind: "revoked", docHash: a!.docHash, reason: a!.reason, by: a!.by };
+    case "IssuerAdded":
+      return { kind: "issuerAdded", wallet: a!.wallet, name: a!.name };
+    case "IssuerRemoved":
+      return { kind: "issuerRemoved", wallet: a!.wallet };
+    default:
+      return null;
+  }
+}
