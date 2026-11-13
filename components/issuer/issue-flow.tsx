@@ -41,13 +41,21 @@ export function IssueFlow() {
   const authHeaders = useAuthHeaders(signAuthHeaders);
 
   const busy = phase !== "idle" && phase !== "done" && !error;
-  const ready = !!student && !!title.trim() && !!file && !!provider;
+  const missing = [!student && "a student", !title.trim() && "a title", !file && "the PDF"].filter(Boolean);
+  const ready = missing.length === 0;
 
   async function onFile(f: File) {
     const ticket = ++pick.current;
     setFile(null);
-    const hash = await sha256Hex(f);
-    if (ticket === pick.current) setFile({ file: f, hash });
+    try {
+      const hash = await sha256Hex(f);
+      if (ticket !== pick.current) return;
+      setFile({ file: f, hash });
+      if (phase === "idle") setError(null);
+    } catch (e) {
+      console.error(e); // crypto.subtle is missing outside https or localhost
+      setError("Could not fingerprint the PDF. Open the app on https or localhost and try again.");
+    }
   }
 
   async function confirm(docHash: Hex, tx: Hex) {
@@ -62,7 +70,8 @@ export function IssueFlow() {
   }
 
   async function run() {
-    if (!student || !file || !provider) return;
+    if (!student || !file) return;
+    if (!provider) return setError("MetaMask is not ready. Reload the page, then try again.");
     setError(null);
     try {
       // The transaction is already mined: only the database record is missing. Never send a second tx.
@@ -193,6 +202,7 @@ export function IssueFlow() {
           <Button type="submit" variant="ink" size="pill-lg" disabled={!ready || locked}>
             Sign and issue
           </Button>
+          {!ready && !locked && <p className="m-0 -mt-3 text-sm text-cc-muted">Still needed: {missing.join(", ")}.</p>}
         </form>
 
         <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-4">
