@@ -33,11 +33,11 @@ export function AppShell({ nav, identity, footerLink, topBar, children }: AppShe
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-dvh flex-wrap items-stretch bg-cc-page text-cc-ink">
+    <div className="flex min-h-dvh flex-wrap items-stretch bg-cc-page text-cc-ink max-[980px]:flex-col max-[980px]:flex-nowrap">
       <aside
         className={cn(
           "cc-on-dark flex flex-[0_0_236px] flex-col gap-7 bg-cc-side px-4 py-6 text-cc-on-dark",
-          "max-[980px]:flex-[1_1_100%] max-[980px]:flex-row max-[980px]:flex-wrap max-[980px]:items-center max-[980px]:gap-x-4 max-[980px]:gap-y-2.5 max-[980px]:px-4 max-[980px]:py-3",
+          "max-[980px]:flex-none max-[980px]:flex-row max-[980px]:flex-wrap max-[980px]:items-center max-[980px]:gap-x-4 max-[980px]:gap-y-2.5 max-[980px]:px-4 max-[980px]:py-3",
         )}
       >
         <Logo tone="yellow" href="/" className="px-2 text-[22px] text-white" />
@@ -82,7 +82,7 @@ export function AppShell({ nav, identity, footerLink, topBar, children }: AppShe
         </div>
       </aside>
 
-      <main className="flex min-w-0 flex-[1_1_560px] flex-col gap-6 px-8 pt-6 pb-16 max-[980px]:px-4 max-[980px]:pt-5 max-[980px]:pb-12">
+      <main className="flex min-w-0 flex-[1_1_560px] flex-col gap-6 max-[980px]:flex-[1_1_auto] px-8 pt-6 pb-16 max-[980px]:px-4 max-[980px]:pt-5 max-[980px]:pb-12">
         {topBar && (
           <div className="flex flex-wrap items-center justify-end gap-4 text-sm text-cc-muted">{topBar}</div>
         )}
