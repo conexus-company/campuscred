@@ -33,11 +33,22 @@ function findEvent(logs: readonly Log[], name: string, contractAddress: string) 
   return null;
 }
 
-/** Pure: first CredentialIssued log emitted by `contractAddress`, or null. */
-export function decodeIssuedLog(logs: readonly Log[], contractAddress: string = CONTRACT_ADDRESS): IssuedFields | null {
-  const a = findEvent(logs, "CredentialIssued", contractAddress);
-  return a && { docHash: a.docHash, studentRef: a.studentRef, credType: a.credType, issuer: a.issuer };
+/** Pure: every CredentialIssued log emitted by `contractAddress` (issueBatch emits one per credential). */
+export function decodeIssuedLogs(logs: readonly Log[], contractAddress: string = CONTRACT_ADDRESS): IssuedFields[] {
+  const out: IssuedFields[] = [];
+  for (const log of logs) {
+    if (log.address.toLowerCase() !== contractAddress.toLowerCase()) continue;
+    const parsed = iface.parseLog({ topics: [...log.topics], data: log.data });
+    if (parsed?.name !== "CredentialIssued") continue;
+    const a = parsed.args;
+    out.push({ docHash: a.docHash, studentRef: a.studentRef, credType: a.credType, issuer: a.issuer });
+  }
+  return out;
 }
+
+/** Pure: first CredentialIssued log emitted by `contractAddress`, or null. */
+export const decodeIssuedLog = (logs: readonly Log[], contractAddress: string = CONTRACT_ADDRESS): IssuedFields | null =>
+  decodeIssuedLogs(logs, contractAddress)[0] ?? null;
 
 /** Pure: first CredentialRevoked log emitted by `contractAddress`, or null. */
 export function decodeRevokedLog(logs: readonly Log[], contractAddress: string = CONTRACT_ADDRESS): RevokedFields | null {
@@ -58,6 +69,12 @@ async function minedEvent<T>(txHash: string, decode: (logs: readonly Log[]) => T
 }
 
 export const getIssuedEvent = (txHash: string) => minedEvent(txHash, (logs) => decodeIssuedLog(logs));
+/** All CredentialIssued events of an issueBatch tx; null when the tx is not a mined CampusCred call with any. */
+export const getIssuedEvents = (txHash: string) =>
+  minedEvent(txHash, (logs) => {
+    const events = decodeIssuedLogs(logs);
+    return events.length ? { events } : null;
+  });
 export const getRevokedEvent = (txHash: string) => minedEvent(txHash, (logs) => decodeRevokedLog(logs));
 
 export const getLatestBlock = (): Promise<number> => provider.getBlockNumber();

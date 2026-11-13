@@ -15,6 +15,8 @@ type Tx = Promise<ContractTransactionResponse>;
 
 export const issueCredential = (c: Contract, docHash: Hex, studentRef: Hex, credType32: Hex): Tx =>
   c.issueCredential(docHash, studentRef, credType32);
+export const issueBatch = (c: Contract, docHashes: Hex[], studentRefs: Hex[], credType32: Hex): Tx =>
+  c.issueBatch(docHashes, studentRefs, credType32);
 export const revokeCredential = (c: Contract, docHash: Hex, reason: RevokeReason): Tx =>
   c.revokeCredential(docHash, encodeReason(reason));
 export const addIssuer = (c: Contract, wallet: string, name: string): Tx => c.addIssuer(wallet, name);
@@ -28,6 +30,8 @@ const MESSAGES: Record<string, string> = {
   NotAllowed: NOT_ALLOWED,
   AccessControlUnauthorizedAccount: NOT_ALLOWED,
   EmptyHash: "Choose a PDF first.",
+  BatchTooLarge: "A batch can hold at most 50 credentials.",
+  LengthMismatch: "The batch lists did not line up. Nothing was issued.",
   EnforcedPause: "Issuing is paused by the admin.",
   AlreadyRevoked: "This credential is already revoked.",
   NotFound: "This credential is not on chain.",
