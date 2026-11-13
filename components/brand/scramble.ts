@@ -1,5 +1,13 @@
 const HEX = "0123456789abcdef";
 
+/** Cheap deterministic mix of (tick, index) so the noise has no visible period. */
+function noise(tick: number, i: number): number {
+  let x = Math.imul(i + 1, 0x9e3779b1) ^ Math.imul(tick + 1, 0x85ebca6b);
+  x ^= x >>> 15;
+  x = Math.imul(x, 0xc2b2ae35);
+  return (x >>> 28) & 15;
+}
+
 /**
  * Left-to-right "decrypt" of a hex string. At `tick` 0 every character after
  * the `0x` prefix is noise; by `resolveTicks` the full target is shown.
@@ -11,7 +19,7 @@ export function scrambleFrame(target: string, tick: number, resolveTicks: number
   const resolved = prefix + Math.floor((target.length - prefix) * progress);
   let out = target.slice(0, resolved);
   for (let i = resolved; i < target.length; i++) {
-    out += HEX[(tick * 7 + i * 13 + i * i) % 16];
+    out += HEX[noise(tick, i)];
   }
   return out;
 }
