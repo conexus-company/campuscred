@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { Interface, Wallet, encodeBytes32String, id } from "ethers";
 import { CAMPUSCRED_ABI } from "@/lib/contract/CampusCred.abi";
 import type { Hex } from "@/lib/contract/config";
-import { decodeIssuedLog, decodeIssuedLogs, decodeRevokedLog, decodeSyncLog } from "./chain";
+import { decodeIssuedLog, decodeIssuedLogs, decodeIssuerLog, decodeRevokedLog, decodeSyncLog } from "./chain";
 
 const iface = new Interface(CAMPUSCRED_ABI);
 const CONTRACT = Wallet.createRandom().address;
@@ -62,5 +62,30 @@ describe("decodeSyncLog", () => {
   test("ignores other events and foreign logs", () => {
     expect(decodeSyncLog(log(CONTRACT, "Paused", [issuer]))).toBeNull();
     expect(decodeSyncLog({ address: CONTRACT, topics: [id("Other(uint256)")], data: "0x" })).toBeNull();
+  });
+});
+
+describe("issuer event decoding", () => {
+  const added = (address: string) => log(address, "IssuerAdded", [issuer, "Registrar's office"]);
+  const removed = (address: string) => log(address, "IssuerRemoved", [issuer]);
+
+  test("decodes IssuerAdded with a checksummed wallet", () => {
+    expect(decodeIssuerLog([added(CONTRACT)], CONTRACT)).toEqual({
+      kind: "added",
+      wallet: issuer,
+      name: "Registrar's office",
+    });
+  });
+
+  test("decodes IssuerRemoved", () => {
+    expect(decodeIssuerLog([removed(CONTRACT)], CONTRACT)).toEqual({ kind: "removed", wallet: issuer });
+  });
+
+  test("ignores logs from another address", () => {
+    expect(decodeIssuerLog([added(OTHER), removed(OTHER)], CONTRACT)).toBeNull();
+  });
+
+  test("ignores other events", () => {
+    expect(decodeIssuerLog([issued(CONTRACT), revoked(CONTRACT)], CONTRACT)).toBeNull();
   });
 });

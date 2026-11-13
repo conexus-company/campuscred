@@ -56,6 +56,16 @@ export function decodeRevokedLog(logs: readonly Log[], contractAddress: string =
   return a && { docHash: a.docHash, reason: a.reason, by: a.by };
 }
 
+export type IssuerEvent = { kind: "added"; wallet: Hex; name: string } | { kind: "removed"; wallet: Hex };
+
+/** Pure: first IssuerAdded or IssuerRemoved log emitted by `contractAddress`, or null. */
+export function decodeIssuerLog(logs: readonly Log[], contractAddress: string = CONTRACT_ADDRESS): IssuerEvent | null {
+  const added = findEvent(logs, "IssuerAdded", contractAddress);
+  if (added) return { kind: "added", wallet: added.wallet, name: added.name };
+  const removed = findEvent(logs, "IssuerRemoved", contractAddress);
+  return removed && { kind: "removed", wallet: removed.wallet };
+}
+
 // Only the tx hash comes from the client; everything else is read from the chain.
 async function minedEvent<T>(txHash: string, decode: (logs: readonly Log[]) => T | null): Promise<Mined<T> | null> {
   const receipt = await provider.getTransactionReceipt(txHash);
@@ -76,6 +86,7 @@ export const getIssuedEvents = (txHash: string) =>
     return events.length ? { events } : null;
   });
 export const getRevokedEvent = (txHash: string) => minedEvent(txHash, (logs) => decodeRevokedLog(logs));
+export const getIssuerEvent = (txHash: string) => minedEvent(txHash, (logs) => decodeIssuerLog(logs));
 
 export const getLatestBlock = (): Promise<number> => provider.getBlockNumber();
 
