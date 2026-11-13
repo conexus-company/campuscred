@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useId } from "react";
 import { Button } from "@/components/ui/button";
 import { signIn, type SignInState } from "@/lib/auth/actions";
@@ -57,6 +58,13 @@ export function LoginForm() {
       <Button type="submit" variant="ink" size="pill-lg" disabled={pending} className="w-full">
         {pending ? "Signing in…" : "Sign in"}
       </Button>
+
+      <p className="m-0 text-sm leading-[1.55] text-cc-muted-2">
+        First time?{" "}
+        <Link href="/signup" className="font-semibold text-cc-ink underline decoration-cc-yellow decoration-2 underline-offset-4">
+          Set up your account
+        </Link>
+      </p>
 
       <p className="m-0 text-sm leading-[1.55] text-cc-muted-2">
         Issuers sign in with their wallet on the issuer page. Checking a document needs no account.
