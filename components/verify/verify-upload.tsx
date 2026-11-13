@@ -10,6 +10,8 @@ import { sha256Hex } from "@/lib/hash";
 import type { ChainRecord, Hex, VerifyResultKind } from "@/lib/types/credential";
 import { decideResult } from "@/lib/verify/decide-result";
 import { issuerName, prefetchIssuers } from "@/lib/verify/issuers";
+import { logVerification } from "@/lib/verify/log";
+import { QrScanner } from "./qr-scanner";
 import { ResultView } from "./result-view";
 import { TrustStrip } from "./trust-strip";
 
@@ -49,6 +51,7 @@ export function VerifyUpload() {
         console.info(`[verify] ${result} in ${Math.round(performance.now() - started)} ms`);
       }
       setState({ phase: "done", fileName, hash, result, record, issuer });
+      logVerification({ docHash: hash, result, method: "upload" });
     } catch {
       if (id !== run.current) return;
       setState({
@@ -100,6 +103,9 @@ export function VerifyUpload() {
     return (
       <div className="cc-in rounded-[28px] border border-cc-line bg-white p-8 [animation-delay:0.1s] max-[560px]:p-4">
         <DropZone onFile={check} />
+        <div className="mt-8 border-t border-cc-line pt-7 max-[560px]:mt-6 max-[560px]:pt-5">
+          <QrScanner />
+        </div>
       </div>
     );
   }
