@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { Interface, Wallet, encodeBytes32String, id } from "ethers";
 import { CAMPUSCRED_ABI } from "@/lib/contract/CampusCred.abi";
 import type { Hex } from "@/lib/contract/config";
-import { decodeIssuedLog, decodeRevokedLog } from "./chain";
+import { decodeIssuedLog, decodeRevokedLog, decodeSyncLog } from "./chain";
 
 const iface = new Interface(CAMPUSCRED_ABI);
 const CONTRACT = Wallet.createRandom().address;
@@ -38,5 +38,23 @@ describe("event decoding", () => {
   test("ignores the other event", () => {
     expect(decodeIssuedLog([revoked(CONTRACT)], CONTRACT)).toBeNull();
     expect(decodeRevokedLog([issued(CONTRACT)], CONTRACT)).toBeNull();
+  });
+});
+
+describe("decodeSyncLog", () => {
+  test("decodes the four mirrored events", () => {
+    expect(decodeSyncLog(issued(CONTRACT))).toEqual({ kind: "issued", docHash });
+    expect(decodeSyncLog(revoked(CONTRACT))).toEqual({ kind: "revoked", docHash, reason, by: issuer });
+    expect(decodeSyncLog(log(CONTRACT, "IssuerAdded", [issuer, "Registrar"]))).toEqual({
+      kind: "issuerAdded",
+      wallet: issuer,
+      name: "Registrar",
+    });
+    expect(decodeSyncLog(log(CONTRACT, "IssuerRemoved", [issuer]))).toEqual({ kind: "issuerRemoved", wallet: issuer });
+  });
+
+  test("ignores other events and foreign logs", () => {
+    expect(decodeSyncLog(log(CONTRACT, "Paused", [issuer]))).toBeNull();
+    expect(decodeSyncLog({ address: CONTRACT, topics: [id("Other(uint256)")], data: "0x" })).toBeNull();
   });
 });

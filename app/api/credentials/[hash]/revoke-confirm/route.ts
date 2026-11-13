@@ -1,9 +1,10 @@
-import type { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 import type { Hex } from "@/lib/contract/config";
 import { isDocHash } from "@/lib/hash";
 import { getRevokedEvent } from "@/lib/server/chain";
 import { revokeEventError, revokedFields } from "@/lib/server/issue";
 import { WalletAuthError, verifyWalletAuth } from "@/lib/server/wallet-auth";
+import { runSync } from "@/lib/server/sync";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const headers = { "Cache-Control": "no-store" };
@@ -27,6 +28,9 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/credentials
   }
 
   const docHash = (await ctx.params).hash.toLowerCase();
+  // Mirror any other new events too, after the response, so the dashboard is current without a cron.
+  after(() => runSync().catch((e) => console.warn("[sync] after confirm failed", e)));
+
   const body = (await req.json().catch(() => null)) as { txHash?: unknown } | null;
   const txHash = typeof body?.txHash === "string" ? body.txHash.toLowerCase() : "";
   // isDocHash is a 32-byte hex check, which also fits a transaction hash.
