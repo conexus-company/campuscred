@@ -21,6 +21,22 @@ export interface ChainRecord {
   revokeReason: RevokeReason | null; // decoded with decodeReason()
 }
 
+/** One entry of GET /api/students/me/credentials (pr-gil.md 3.4). No PDF path, no student data. */
+export type MyCredential = {
+  docHash: Hex;
+  slug: string;
+  credType: CredType;
+  title: string;
+  issuerName: string;
+  /** Unix seconds, like the chain. */
+  issuedAt: number;
+  status: "active" | "revoked";
+  issueTx: Hex;
+  revokeTx?: Hex;
+  revokeReason?: RevokeReason;
+  isPublic: boolean;
+};
+
 // Compile-time guards: tsc fails if these drift from Alvin's codes.ts or the StatusPill.
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 type Assert<T extends true> = T;
