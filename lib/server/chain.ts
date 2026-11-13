@@ -5,11 +5,9 @@ import { CHAIN_ID, CONTRACT_ADDRESS, RPC_URLS, type Hex } from "@/lib/contract/c
 const iface = new Interface(CAMPUSCRED_ABI);
 
 // staticNetwork: never probe eth_chainId; priority order = RPC_URLS order.
+const rpcs = RPC_URLS.map((url) => new JsonRpcProvider(url, CHAIN_ID, { staticNetwork: true }));
 const provider = new FallbackProvider(
-  RPC_URLS.map((url, i) => ({
-    provider: new JsonRpcProvider(url, CHAIN_ID, { staticNetwork: true }),
-    priority: i + 1,
-  })),
+  rpcs.map((p, i) => ({ provider: p, priority: i + 1 })),
   CHAIN_ID,
   { quorum: 1 },
 );
@@ -61,3 +59,56 @@ async function minedEvent<T>(txHash: string, decode: (logs: readonly Log[]) => T
 
 export const getIssuedEvent = (txHash: string) => minedEvent(txHash, (logs) => decodeIssuedLog(logs));
 export const getRevokedEvent = (txHash: string) => minedEvent(txHash, (logs) => decodeRevokedLog(logs));
+
+export const getLatestBlock = (): Promise<number> => provider.getBlockNumber();
+
+export async function getBlockTimestamp(blockNumber: number): Promise<number> {
+  const block = await provider.getBlock(blockNumber);
+  if (!block) throw new Error(`block ${blockNumber} not found`);
+  return block.timestamp;
+}
+
+/**
+ * CampusCred logs in [fromBlock, toBlock], trying each RPC in order. Not through the
+ * FallbackProvider: some public RPCs reject eth_getLogs outright ("limit exceeded").
+ */
+export async function getContractLogs(fromBlock: number, toBlock: number) {
+  let lastError: unknown;
+  for (const rpc of rpcs) {
+    try {
+      return await rpc.getLogs({ address: CONTRACT_ADDRESS, fromBlock, toBlock });
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw lastError;
+}
+
+export type SyncEvent =
+  | { kind: "issued"; docHash: Hex }
+  | { kind: "revoked"; docHash: Hex; reason: Hex; by: Hex }
+  | { kind: "issuerAdded"; wallet: Hex; name: string }
+  | { kind: "issuerRemoved"; wallet: Hex };
+
+/** Pure: the event /api/sync mirrors, or null for any other CampusCred log (Paused, role events). */
+export function decodeSyncLog(log: Log): SyncEvent | null {
+  let parsed;
+  try {
+    parsed = iface.parseLog({ topics: [...log.topics], data: log.data });
+  } catch {
+    return null;
+  }
+  const a = parsed?.args;
+  switch (parsed?.name) {
+    case "CredentialIssued":
+      return { kind: "issued", docHash: a!.docHash };
+    case "CredentialRevoked":
+      return { kind: "revoked", docHash: a!.docHash, reason: a!.reason, by: a!.by };
+    case "IssuerAdded":
+      return { kind: "issuerAdded", wallet: a!.wallet, name: a!.name };
+    case "IssuerRemoved":
+      return { kind: "issuerRemoved", wallet: a!.wallet };
+    default:
+      return null;
+  }
+}
