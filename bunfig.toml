@@ -1,0 +1,3 @@
+[test]
+# Hardhat tests run with mocha via `npx hardhat test` inside hardhat/, not bun.
+pathIgnorePatterns = ["hardhat/**"]
