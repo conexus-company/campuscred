@@ -24,6 +24,11 @@ export const removeIssuer = (c: Contract, wallet: string): Tx => c.removeIssuer(
 export const pause = (c: Contract): Tx => c.pause();
 export const unpause = (c: Contract): Tx => c.unpause();
 
+/** The contract's `paused()` view. The chain is the only source of truth for pause. */
+export async function readPaused(provider: BrowserProvider): Promise<boolean> {
+  return new Contract(CONTRACT_ADDRESS, CAMPUSCRED_ABI, provider).paused();
+}
+
 const NOT_ALLOWED = "This wallet is not allowed to do that.";
 const MESSAGES: Record<string, string> = {
   AlreadyIssued: "This document was already issued.",
@@ -33,6 +38,7 @@ const MESSAGES: Record<string, string> = {
   BatchTooLarge: "A batch can hold at most 50 credentials.",
   LengthMismatch: "The batch lists did not line up. Nothing was issued.",
   EnforcedPause: "Issuing is paused by the admin.",
+  ExpectedPause: "Issuing is not paused.",
   AlreadyRevoked: "This credential is already revoked.",
   NotFound: "This credential is not on chain.",
 };

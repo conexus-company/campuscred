@@ -12,6 +12,7 @@ const cases: [name: string, args: unknown[], message: string][] = [
   ["AccessControlUnauthorizedAccount", [ZeroAddress, ZeroHash], "This wallet is not allowed to do that."],
   ["EmptyHash", [], "Choose a PDF first."],
   ["EnforcedPause", [], "Issuing is paused by the admin."],
+  ["ExpectedPause", [], "Issuing is not paused."],
   ["AlreadyRevoked", [HASH], "This credential is already revoked."],
   ["NotFound", [HASH], "This credential is not on chain."],
 ];
