@@ -21,6 +21,7 @@ export function StudentSearch({ value, onChange, authHeaders, disabled }: Studen
   const [results, setResults] = useState<Student[]>([]);
   const [active, setActive] = useState(-1);
   const [failed, setFailed] = useState(false);
+  const [searched, setSearched] = useState<string | null>(null); // query the current results belong to
   const listId = useId();
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export function StudentSearch({ value, onChange, authHeaders, disabled }: Studen
         const rows = (await res.json()) as Student[];
         if (stale) return;
         setResults(rows);
+        setSearched(query);
         setActive(-1);
         setFailed(false);
       } catch {
@@ -69,7 +71,17 @@ export function StudentSearch({ value, onChange, authHeaders, disabled }: Studen
     );
   }
 
-  const open = query.trim().length >= 2 && results.length > 0;
+  const long = query.trim().length >= 2;
+  const open = long && results.length > 0;
+  // The first search waits on a MetaMask signature, so say so instead of showing nothing.
+  const status =
+    !long || failed
+      ? null
+      : searched !== query
+        ? "Searching… approve the signature in MetaMask if asked."
+        : results.length === 0
+          ? `No students match "${query.trim()}".`
+          : null;
   return (
     <div className="relative flex flex-col gap-2">
       <input
@@ -117,6 +129,9 @@ export function StudentSearch({ value, onChange, authHeaders, disabled }: Studen
           ))}
         </ul>
       )}
+      <p aria-live="polite" className="m-0 text-sm text-cc-muted">
+        {status}
+      </p>
       {failed && (
         <p role="alert" className="m-0 text-sm font-semibold text-[#991B1B]">
           Could not search students. Try again.
