@@ -11,6 +11,7 @@ import { credTypeLabel, formatDate, revokeReasonText } from "@/lib/format";
 import { sha256Hex } from "@/lib/hash";
 import type { ChainRecord, Hex, VerifyResultKind } from "@/lib/types/credential";
 import { decideResult } from "@/lib/verify/decide-result";
+import { logVerification } from "@/lib/verify/log";
 import type { SlugMeta } from "@/lib/verify/slug-meta";
 import { ContractLink } from "./trust-strip";
 
@@ -54,6 +55,14 @@ export function SlugVerify({ meta }: { meta: SlugMeta }) {
     void load();
   }, [load]);
 
+  // Log the link result once it is known. QR codes carry ?via=qr (components/student/share-sheet.tsx).
+  useEffect(() => {
+    if (chain.phase !== "ready") return;
+    const via = new URLSearchParams(window.location.search).get("via") === "qr" ? "qr" : "link";
+    const result = decideResult({ record: chain.record, openedViaSlug: true, slugDocHash: meta.docHash });
+    logVerification({ docHash: meta.docHash, result, method: via });
+  }, [chain, meta.docHash]);
+
   if (chain.phase === "loading") {
     return (
       <div role="status" className="flex flex-col gap-4 rounded-[32px] bg-cc-side px-10 py-11 text-cc-on-dark max-[560px]:px-6 max-[560px]:py-8">
@@ -91,6 +100,7 @@ export function SlugVerify({ meta }: { meta: SlugMeta }) {
       if (id !== run.current) return;
       const result = decideResult({ record, openedViaSlug: true, slugDocHash: meta.docHash, uploadedDocHash: hash });
       setCopy({ phase: "done", fileName: file.name, hash, result });
+      logVerification({ docHash: meta.docHash, result, method: "upload" });
     } catch {
       if (id === run.current) setCopy({ phase: "error", fileName: file.name });
     }

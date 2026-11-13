@@ -4,7 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
 /**
  * Student session upkeep (gil/06). Server Components cannot write cookies, so this refreshes the
  * Supabase auth cookies on student routes and makes the optimistic redirects:
- * no session on /student goes to /login, a session on /login goes to /student.
+ * no session on /student goes to /login, a session on /login or /signup goes to /student.
  * Pages and Server Functions still check the session themselves (lib/auth/session.ts).
  */
 export async function proxy(request: NextRequest) {
@@ -36,7 +36,8 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const redirectTo = isStudent && !user ? "/login" : path === "/login" && user ? "/student" : null;
+  const isAuthPage = path === "/login" || path === "/signup";
+  const redirectTo = isStudent && !user ? "/login" : isAuthPage && user ? "/student" : null;
   if (!redirectTo) return response;
 
   const redirect = NextResponse.redirect(new URL(redirectTo, request.url));
@@ -46,5 +47,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/student/:path*", "/login"],
+  matcher: ["/student/:path*", "/login", "/signup"],
 };
