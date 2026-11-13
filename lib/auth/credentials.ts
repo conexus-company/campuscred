@@ -117,3 +117,34 @@ export function pdfFileName(title: string): string {
   const base = title.replace(/[^\p{L}\p{N} ._-]+/gu, "").replace(/\s+/g, " ").trim().slice(0, 80);
   return `${base || "credential"}.pdf`;
 }
+
+export type VisibilityResult = { ok: true; isPublic: boolean } | { ok: false; error: "unauthorized" | "not_found" };
+
+/**
+ * PATCH /api/credentials/[hash]/visibility (FR-12). The session client finds the row (RLS: own
+ * rows only); the update runs as the service role because students have no update policy, and
+ * is pinned to the same student_id so it can never touch another student's row.
+ */
+export async function setVisibility(docHash: string, isPublic: boolean): Promise<VisibilityResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+  if (!isDocHash(docHash)) return { ok: false, error: "not_found" };
+  const hash = docHash.toLowerCase();
+
+  const { data, error } = await supabase.from("credentials").select("student_id").eq("doc_hash", hash).maybeSingle();
+  if (error) throw error;
+  if (!data || data.student_id !== user.id) return { ok: false, error: "not_found" };
+
+  const { data: updated, error: updateError } = await createAdminClient()
+    .from("credentials")
+    .update({ is_public: isPublic })
+    .eq("doc_hash", hash)
+    .eq("student_id", user.id)
+    .select("is_public")
+    .single();
+  if (updateError) throw updateError;
+  return { ok: true, isPublic: updated.is_public as boolean };
+}
