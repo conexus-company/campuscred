@@ -19,6 +19,9 @@ const config: HardhatUserConfig = {
       accounts: deployerKey ? [deployerKey] : [],
     },
   },
+  // One Etherscan v2 key covers BscScan (chain 97).
+  etherscan: { apiKey: process.env.BSCSCAN_API_KEY ?? "" },
+  sourcify: { enabled: false },
 };
 
 export default config;
