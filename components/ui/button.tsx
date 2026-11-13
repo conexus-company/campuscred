@@ -2,6 +2,10 @@ import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 
+// Prototype .btn: lift on hover, 3px ink focus outline instead of the shadcn ring.
+const pillMotion =
+  "transition-[transform,background-color] duration-300 ease-[cubic-bezier(.2,.9,.2,1)] hover:-translate-y-[3px] active:not-aria-[haspopup]:translate-y-0 focus-visible:border-cc-ink focus-visible:ring-0 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-3 focus-visible:outline-cc-ink"
+
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
@@ -17,6 +21,10 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        // CampusCred pill variants (pair with a pill-* size)
+        ink: `bg-cc-ink text-cc-yellow hover:bg-cc-ink ${pillMotion}`,
+        yellow: `bg-cc-yellow text-cc-ink hover:bg-transparent ${pillMotion}`,
+        "ink-outline": `border-2 border-cc-ink bg-transparent text-cc-ink hover:bg-transparent ${pillMotion}`,
       },
       size: {
         default:
@@ -30,6 +38,9 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
+        pill: "h-auto min-h-13 gap-2.5 rounded-full px-7 text-base font-bold",
+        "pill-sm": "h-auto min-h-11 gap-2 rounded-full px-[22px] text-[15px] font-bold",
+        "pill-lg": "h-auto min-h-14 gap-2.5 rounded-full px-7 text-[17px] font-bold",
       },
     },
     defaultVariants: {
