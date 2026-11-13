@@ -18,7 +18,7 @@ import { Timeline } from "@/components/ui/timeline";
 // Sample values only. The hash is SHA-256("abc").
 const SAMPLE_HASH = "0xba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 const OTHER_HASH = "0xc41e90b75a2d3f61e08c7b94a2d5e1f03b6c8a97d4e2f15b0c3a68e9d7f42b10";
-const SAMPLE_LINK = "https://[DOMAIN]/v/k7Qm2xVt9a";
+const SAMPLE_LINK = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/v/k7Qm2xVa9P`;
 const STATUSES: PillStatus[] = ["valid", "revoked", "tampered", "not_found", "active", "pending", "match"];
 
 function Section({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
