@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { HashText } from "@/components/brand/hash-text";
@@ -8,14 +9,15 @@ import { PageBanner } from "@/components/shell/page-banner";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Timeline, type TimelineItem } from "@/components/ui/timeline";
-import { txUrl } from "@/lib/contract/config";
+import { txUrl, type Hex } from "@/lib/contract/config";
 import { credTypeLabel, formatDate, revokeReasonText, shortAddress, shortHash } from "@/lib/format";
 import type { IssuerCredential } from "@/lib/server/issuer-credentials";
 import { useAuthHeaders } from "@/lib/wallet/use-auth-headers";
 import { useWallet } from "@/lib/wallet/use-wallet";
 import { RevokeDialog } from "./revoke-dialog";
 
-type Load = { kind: "loading" } | { kind: "error" } | { kind: "missing" } | { kind: "ok"; c: IssuerCredential };
+type Detail = IssuerCredential & { replacedBy: Hex | null };
+type Load = { kind: "loading" } | { kind: "error" } | { kind: "missing" } | { kind: "ok"; c: Detail };
 
 const LINK = "font-mono text-[13px] break-all underline decoration-cc-yellow decoration-2 underline-offset-[5px]";
 
@@ -40,7 +42,7 @@ export function CredentialDetail() {
       const res = await fetch(`/api/issuer/credentials/${encodeURIComponent(hash)}`, { headers: await authHeaders() });
       if (res.status === 404) return setLoad({ kind: "missing" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setLoad({ kind: "ok", c: (await res.json()) as IssuerCredential });
+      setLoad({ kind: "ok", c: (await res.json()) as Detail });
     } catch {
       setLoad({ kind: "error" }); // includes a rejected signature
     }
@@ -81,7 +83,9 @@ export function CredentialDetail() {
 
   const c = load.c;
   const ownWallet = !!address && c.issuerWallet.toLowerCase() === address.toLowerCase();
-  const canRevoke = c.status === "active" && !!provider && (isAdmin || (isIssuer && ownWallet));
+  const mayAct = !!provider && (isAdmin || (isIssuer && ownWallet));
+  const canRevoke = c.status === "active" && mayAct;
+  const canReissue = mayAct && !c.replacedBy;
   const history: TimelineItem[] = [
     { title: "Issued", date: formatDate(c.issuedAt), text: "Recorded on BSC Testnet.", tone: "valid" },
   ];
@@ -102,6 +106,11 @@ export function CredentialDetail() {
         action={
           <div className="flex flex-wrap items-center gap-3">
             <StatusPill status={c.status} size="md" />
+            {canReissue && (
+              <Link href={`/issuer/new?replaces=${c.docHash}`} className={buttonVariants({ variant: "yellow", size: "pill" })}>
+                Re-issue
+              </Link>
+            )}
             {canRevoke && (
               <RevokeDialog
                 docHash={c.docHash}
@@ -132,6 +141,20 @@ export function CredentialDetail() {
               <Row label="Fingerprint">
                 <HashText value={c.docHash} className="text-sm leading-[1.7]" />
               </Row>
+              {c.replaces && (
+                <Row label="Replaces">
+                  <Link href={`/issuer/credential/${c.replaces}`} className={LINK}>
+                    {shortHash(c.replaces)}
+                  </Link>
+                </Row>
+              )}
+              {c.replacedBy && (
+                <Row label="Replaced by">
+                  <Link href={`/issuer/credential/${c.replacedBy}`} className={LINK}>
+                    {shortHash(c.replacedBy)}
+                  </Link>
+                </Row>
+              )}
               <Row label="Share link">
                 <a href={`/v/${c.slug}`} className={LINK}>
                   /v/{c.slug}

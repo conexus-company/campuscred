@@ -19,6 +19,7 @@ const row: IssuerCredentialRow = {
   revoke_tx: tx,
   revoke_reason: "FRAUD",
   revoked_at: "2026-11-06T02:00:00+00:00",
+  replaces: null,
   students: [{ full_name: "Juan Dela Cruz", student_no: "22-12345" }],
   issuers: { display_name: "Office of the Registrar (sample)" },
 };

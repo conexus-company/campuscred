@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { IssueFlow } from "@/components/issuer/issue-flow";
 import { PageBanner } from "@/components/shell/page-banner";
 
@@ -11,7 +12,10 @@ export default function IssueNewPage() {
         title="Issue a credential"
         subtitle="The PDF is fingerprinted in your browser. Only the fingerprint goes on the chain."
       />
-      <IssueFlow />
+      {/* IssueFlow reads ?replaces= (re-issue); useSearchParams suspends under cacheComponents. */}
+      <Suspense>
+        <IssueFlow />
+      </Suspense>
     </>
   );
 }

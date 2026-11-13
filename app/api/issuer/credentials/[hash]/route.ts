@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import type { Hex } from "@/lib/contract/config";
 import { isDocHash } from "@/lib/hash";
 import {
   CREDENTIAL_COLUMNS,
@@ -15,6 +16,7 @@ const fail = (error: string, status: number) => Response.json({ error }, { statu
 /**
  * GET /api/issuer/credentials/[hash] (pr-alvin.md 3.4). Issuer or admin wallet signature required.
  * One credential with student name and number. Another issuer's credential is 404 unless the caller is admin.
+ * Adds `replacedBy`: the credential that re-issued this one, if any.
  */
 export async function GET(req: NextRequest, ctx: RouteContext<"/api/issuer/credentials/[hash]">) {
   let scope: Awaited<ReturnType<typeof issuerScope>>;
@@ -28,10 +30,15 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/issuer/crede
   const hash = (await ctx.params).hash.toLowerCase();
   if (!isDocHash(hash)) return fail("not_found", 404);
 
-  let query = createAdminClient().from("credentials").select(CREDENTIAL_COLUMNS).eq("doc_hash", hash);
+  const db = createAdminClient();
+  let query = db.from("credentials").select(CREDENTIAL_COLUMNS).eq("doc_hash", hash);
   if (!scope.isAdmin) query = query.eq("issuer_wallet", scope.address);
-  const { data, error } = await query.maybeSingle();
-  if (error) return fail("unavailable", 503);
+  const [{ data, error }, next] = await Promise.all([
+    query.maybeSingle(),
+    db.from("credentials").select("doc_hash").eq("replaces", hash).maybeSingle(),
+  ]);
+  if (error || next.error) return fail("unavailable", 503);
   if (!data) return fail("not_found", 404);
-  return Response.json(toIssuerCredential(data as unknown as IssuerCredentialRow), { headers });
+  const replacedBy = (next.data?.doc_hash.trim() ?? null) as Hex | null;
+  return Response.json({ ...toIssuerCredential(data as unknown as IssuerCredentialRow), replacedBy }, { headers });
 }
