@@ -10,7 +10,7 @@ export function WalletCard() {
   const role = wallet.isAdmin ? "Registrar admin" : "Approved issuer";
 
   return (
-    <Card className="max-w-md">
+    <Card className="flex-[1_1_320px]">
       <CardHeader>
         <CardTitle>Your wallet</CardTitle>
       </CardHeader>
