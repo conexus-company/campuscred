@@ -1,15 +1,16 @@
-import { BarChart3, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, UserCog } from "lucide-react";
 import { Suspense } from "react";
 import { AppShell, type AppShellNavItem } from "@/components/shell/app-shell";
 import { RoleGate } from "@/components/wallet/role-gate";
 
 const NAV: AppShellNavItem[] = [
-  { href: "/admin", label: "Overview", icon: <BarChart3 /> },
+  { href: "/admin", label: "Admin", icon: <UserCog /> },
+  { href: "/issuer", label: "Issuer dashboard", icon: <LayoutDashboard /> },
   { href: "/verify", label: "Verify a document", icon: <ShieldCheck /> },
 ];
 
-// shortcut: minimal shell for alvin/13 stats; gil's alvin/10-admin owns this layout and replaces it.
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
+  // Same shape as app/issuer/layout.tsx: AppShell calls usePathname, so it sits behind Suspense.
   return (
     <Suspense>
       <AppShell
