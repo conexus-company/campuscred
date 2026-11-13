@@ -66,7 +66,7 @@ export function ShareSheet({ link, title, isPublic }: ShareSheetProps) {
             <p className="m-0 text-[15px] text-cc-muted">{title}</p>
           </div>
 
-          <QrTile value={link} size={240} label={`QR code that opens the verify page for ${title}`} />
+          <QrTile value={`${link}?via=qr`} size={240} label={`QR code that opens the verify page for ${title}`} />
 
           <div className="flex w-full flex-col gap-2">
             <label htmlFor={`${headingId}-link`} className="text-sm font-semibold">
